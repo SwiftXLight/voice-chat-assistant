@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, field_validator
 import openai
 import os
@@ -370,6 +371,10 @@ async def clear_conversation(request: Request, conversation_id: str = "default")
         logger.info(f"[{request_id}] Conversation history cleared")
     
     return {"message": "Conversation history cleared", "conversation_id": conversation_id}
+
+# Serve static files (frontend) in production
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 def main():
     """Main entry point for the application."""
