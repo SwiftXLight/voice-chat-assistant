@@ -372,9 +372,14 @@ async def clear_conversation(request: Request, conversation_id: str = "default")
     
     return {"message": "Conversation history cleared", "conversation_id": conversation_id}
 
-# Serve static files (frontend) in production - MUST be last to avoid conflicts with API routes
-if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Serve static files (frontend) - MUST be last to avoid conflicts with API routes
+static_dir = "static"
+if os.path.exists(static_dir):
+    logger.info(f"Mounting static files from {static_dir}")
+    logger.info(f"Static directory contents: {os.listdir(static_dir)}")
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+else:
+    logger.warning(f"Static directory {static_dir} not found - frontend will not be served")
 
 def main():
     """Main entry point for the application."""
