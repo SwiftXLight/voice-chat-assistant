@@ -372,7 +372,7 @@ async def clear_conversation(request: Request, conversation_id: str = "default")
     
     return {"message": "Conversation history cleared", "conversation_id": conversation_id}
 
-# Serve static files (frontend) in production
+# Serve static files (frontend) in production - MUST be last to avoid conflicts with API routes
 if os.path.exists("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
