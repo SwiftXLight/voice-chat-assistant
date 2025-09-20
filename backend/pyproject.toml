@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "voice-chat-backend"
+version = "0.1.0"
+description = "FastAPI backend for voice chat app"
+authors = ["Andrii Panchenko <andrevpanchenko@gmail.com>"]
+readme = "README.md"
+packages = [{include = "voice_chat_backend"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.2"
+uvicorn = "^0.36.0"
+python-multipart = "^0.0.20"
+openai = "^1.108.1"
+python-dotenv = "^1.1.1"
+
+[tool.poetry.group.dev.dependencies]
+debugpy = "^1.8.0"
+
+[tool.poetry.scripts]
+start = "main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
