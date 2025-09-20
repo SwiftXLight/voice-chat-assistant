@@ -145,9 +145,9 @@ class HealthResponse(BaseModel):
     timestamp: str
     version: str = "1.0.0"
 
-@app.get("/", response_model=HealthResponse)
+@app.get("/health", response_model=HealthResponse)
 @create_rate_limiter("health")
-async def root(request: Request):
+async def health_check(request: Request):
     """Health check endpoint"""
     response = HealthResponse(
         message="Voice Chat API is running",
@@ -155,6 +155,12 @@ async def root(request: Request):
         timestamp=time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())
     )
     return response
+
+# Keep the old endpoint for backward compatibility
+@app.get("/api/health", response_model=HealthResponse)
+async def api_health_check(request: Request):
+    """API Health check endpoint"""
+    return await health_check(request)
 
 @app.post("/transcribe", response_model=TranscribeResponse)
 @create_rate_limiter("transcribe")
