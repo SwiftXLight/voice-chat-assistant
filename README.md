@@ -13,7 +13,7 @@ voice-chat-app/
 
 ## Setup
 
-### 🚀 **Super Simple Startup**
+### 🚀 **Quick Start with Docker (Recommended)**
 
 #### **One-Command Start:**
 ```bash
@@ -26,7 +26,7 @@ That's it! The script will:
 - ✅ Start both frontend and backend containers
 - ✅ Show you the URLs to access
 
-#### **Available Commands:**
+#### **Available Docker Commands:**
 ```bash
 ./start.sh           # Start the application
 ./start.sh stop      # Stop all services
@@ -34,7 +34,7 @@ That's it! The script will:
 ./start.sh restart   # Restart all services
 ```
 
-#### **First Time Setup:**
+#### **First Time Docker Setup:**
 1. **Run the script:**
    ```bash
    ./start.sh
@@ -53,23 +53,99 @@ That's it! The script will:
    - **Frontend:** http://localhost:3000
    - **Backend API:** http://localhost:8000
 
-### 🐛 **For Debugging:**
+---
+
+### 🛠️ **Local Development Setup**
+
+For local development without Docker:
+
+#### **Prerequisites:**
+- Python 3.11+
+- Node.js 18+
+- Poetry (Python package manager)
+
+#### **Backend Setup:**
 ```bash
-# Run backend locally with full debugging support
-cd backend && source venv/bin/activate && python main.py
-```
-This gives you full Python debugging capabilities with breakpoints, etc.
+# Navigate to backend directory
+cd backend
 
-### 🛠️ **Manual Setup (if needed):**
+# Install Poetry if not installed
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install dependencies
+poetry install
+
+# Start backend server
+poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### **Frontend Setup:**
 ```bash
-# Backend - the code will automatically find the .env file in the root directory
-cd backend && source venv/bin/activate && python main.py
+# Navigate to frontend directory (in a new terminal)
+cd frontend
 
-# Frontend (in another terminal)
-cd frontend && npm run dev
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
 ```
 
-**Note:** The backend automatically loads the `.env` file from the root directory, so you don't need a separate backend `.env` file.
+#### **Environment Variables:**
+Create a `.env` file in the root directory:
+```bash
+# Required
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Optional
+VITE_API_URL=http://localhost:8000
+```
+
+#### **Alternative Backend Start Methods:**
+```bash
+# Method 1: Using Poetry (Recommended)
+cd backend
+poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Method 2: Using Python directly
+cd backend
+poetry shell  # Activate virtual environment
+python main.py
+
+# Method 3: Using traditional venv (if you prefer)
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt  # You'll need to generate this from pyproject.toml
+python main.py
+```
+
+### 🐛 **Development & Debugging:**
+
+#### **Backend Debugging:**
+```bash
+# Run with full debugging support
+cd backend
+poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+```
+
+#### **Frontend Debugging:**
+```bash
+# Run with development tools
+cd frontend
+npm run dev
+```
+
+#### **Running Tests:**
+```bash
+# Backend tests
+cd backend
+poetry run pytest tests/ -v
+
+# Frontend tests (if available)
+cd frontend
+npm run test
+```
 
 ### 📁 **Project Structure:**
 ```

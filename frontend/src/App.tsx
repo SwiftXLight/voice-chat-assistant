@@ -1,5 +1,9 @@
 import { useState, useRef } from 'react'
 import './App.css'
+import { apiClient } from './utils/apiClient'
+import { ErrorHandler } from './utils/errorHandler'
+import type { AppError } from './types/api'
+import ErrorNotification from './components/ErrorNotification'
 
 interface Message {
   type: 'user' | 'assistant'
@@ -12,12 +16,17 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [transcript, setTranscript] = useState('')
+  const [error, setError] = useState<AppError | null>(null)
+  const [retryAction, setRetryAction] = useState<(() => void) | null>(null)
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
 
   const startRecording = async () => {
     try {
+      // Clear any previous errors
+      setError(null)
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const mediaRecorder = new MediaRecorder(stream)
       mediaRecorderRef.current = mediaRecorder
@@ -41,7 +50,9 @@ function App() {
       setIsRecording(true)
     } catch (error) {
       console.error('Error starting recording:', error)
-      alert('Error accessing microphone. Please check permissions.')
+      const appError = ErrorHandler.handleMicrophoneError(error)
+      setError(appError)
+      setRetryAction(() => startRecording)
     }
   }
 
@@ -55,20 +66,11 @@ function App() {
 
   const processAudio = async (audioBlob: Blob) => {
     try {
+      // Clear any previous errors
+      setError(null)
+      
       // Step 1: Transcribe audio
-      const formData = new FormData()
-      formData.append('file', audioBlob, 'recording.wav')
-
-      const transcribeResponse = await fetch('http://localhost:8000/transcribe', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!transcribeResponse.ok) {
-        throw new Error('Transcription failed')
-      }
-
-      const transcribeData = await transcribeResponse.json()
+      const transcribeData = await apiClient.transcribeAudio(audioBlob)
       const userMessage = transcribeData.transcript
       setTranscript(userMessage)
 
@@ -81,19 +83,7 @@ function App() {
       setMessages(prev => [...prev, userMsg])
 
       // Step 2: Get ChatGPT response
-      const chatResponse = await fetch('http://localhost:8000/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      })
-
-      if (!chatResponse.ok) {
-        throw new Error('Chat failed')
-      }
-
-      const chatData = await chatResponse.json()
+      const chatData = await apiClient.sendChatMessage(userMessage)
       
       // Add assistant message to chat
       const assistantMsg: Message = {
@@ -105,7 +95,12 @@ function App() {
 
     } catch (error) {
       console.error('Error processing audio:', error)
-      alert('Error processing audio. Please try again.')
+      if (error instanceof Error && 'type' in error) {
+        setError(error as AppError)
+      } else {
+        setError(ErrorHandler.handleApiError(error, 'processing'))
+      }
+      setRetryAction(() => () => processAudio(audioBlob))
     } finally {
       setIsProcessing(false)
     }
@@ -114,6 +109,20 @@ function App() {
   const clearChat = () => {
     setMessages([])
     setTranscript('')
+    setError(null)
+  }
+
+  const handleErrorDismiss = () => {
+    setError(null)
+    setRetryAction(null)
+  }
+
+  const handleRetry = () => {
+    if (retryAction) {
+      setError(null)
+      retryAction()
+      setRetryAction(null)
+    }
   }
 
   return (
@@ -151,6 +160,12 @@ function App() {
             </div>
           )}
         </div>
+
+        <ErrorNotification
+          error={error}
+          onDismiss={handleErrorDismiss}
+          onRetry={retryAction ? handleRetry : undefined}
+        />
 
         <div className="controls">
           <button
