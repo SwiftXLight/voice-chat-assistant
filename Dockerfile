@@ -34,8 +34,15 @@ COPY backend/ ./
 # Copy built frontend
 COPY --from=frontend-builder /app/frontend/dist ./static
 
+# Debug: List contents to verify static files exist
+RUN ls -la ./static/ || echo "Static directory not found"
+
 # Create startup script
 RUN echo '#!/bin/bash\n\
+echo "Environment: $ENVIRONMENT"\n\
+echo "Port: $PORT"\n\
+echo "Static directory contents:"\n\
+ls -la /app/static/ || echo "No static directory"\n\
 if [ "$ENVIRONMENT" = "production" ]; then\n\
     exec uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2\n\
 else\n\
