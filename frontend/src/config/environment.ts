@@ -1,6 +1,6 @@
 // Environment configuration
 export const ENV_CONFIG = {
-  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  API_URL: import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000'),
   NODE_ENV: import.meta.env.MODE || 'development',
   IS_PRODUCTION: import.meta.env.PROD,
   IS_DEVELOPMENT: import.meta.env.DEV,

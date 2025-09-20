@@ -160,7 +160,7 @@ class SecurityHeaders:
             "script-src 'self'; "
             "style-src 'self' 'unsafe-inline'; "
             "img-src 'self' data:; "
-            "connect-src 'self'; "
+            "connect-src 'self' https: wss:; "
             "font-src 'self'; "
             "object-src 'none'; "
             "media-src 'self'; "
